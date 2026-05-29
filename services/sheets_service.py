@@ -1,57 +1,66 @@
-import gspread
-from config import settings
+from services.sheets_reader import ler_dados
+from services.sheets_writer import escrever_resultados
 from utils.cleaners import limpar_dados
-from utils.formatters import para_lista_de_listas
+from utils.logger import log
+from utils.storage import (
+    carregar_processados,
+    salvar_processados
+)
+from utils.dataframe import criar_dataframe
+from utils.charts import grafico_por_area
+from utils.report import gerar_relatorio
+from utils.csv_exporter import exportar_snapshot_csv
+from utils.storage import ler_snapshot, salvar_snapshot, atualizar_snapshot
+from utils.viewer import mostrar_estado
 
 def executar_pipeline():
 
-    cliente = gspread.service_account(filename=settings.campingartistas)
+    log("INFO", "Lendo dados da planilha")
 
-    planilha = cliente.open_by_key(settings.SHEET_ID)
+    dados = ler_dados()
+    processados = carregar_processados()
+    dados_novos = []
 
-    aba_entrada = planilha.sheet1
+    for item in dados:
+        cpf = str(item.get("CPF / RG / PASSAPORTE", "")).strip()
 
-    dados = aba_entrada.get_all_records()
-    print("TOTAL LIDO: ", len(dados))
+        area = str(item.get("ÁREA DO PROJETO", "")).strip()
 
-    if dados:
-        print("Primeiro Item: ")
-        print(dados[0])
+        chave = f"{cpf}-{area}"
 
-    dados_ok, dados_ruins, dados_duplicados = limpar_dados(dados)
-    print("Validos: ", len(dados_ok))
-    print("Invalidos: ", len(dados_ruins))
-    print("Duplicados: ", len(dados_duplicados))
+        if chave not in processados:
+            dados_novos.append(item)
+            processados.add(chave)
 
-    aba_ok = planilha.worksheet("dados_ok")
-    aba_ruins = planilha.worksheet("dados_ruins")
-    aba_duplicados = planilha.worksheet("dados_duplicados")
+    log("INFO",f"{len(dados_novos)} novos registros encontrados")
 
-    aba_ok.clear()
-    aba_ruins.clear()
-    aba_duplicados.clear()
+    snapshot = ler_snapshot()
+    snapshot = atualizar_snapshot(snapshot, dados_novos)
+    salvar_snapshot(snapshot)
+    dados_ok, dados_ruins, dados_duplicados = (limpar_dados(snapshot))
 
-    cabecalho = [
-        "nome",
-        "cpf",
-        "telefone",
-        "area",
-        "status",
-        "detalhe"
-    ]
+    snapshot_atual = ler_snapshot()
+    exportar_snapshot_csv("exports/snapshot_completo.csv", snapshot_atual)
 
-    aba_ok.append_row(cabecalho)
-    aba_ruins.append_row(cabecalho)
-    aba_duplicados.append_row(cabecalho)
+    gerar_relatorio(
+        total=len(dados_novos),
+        validos=len(dados_ok),
+        invalidos=len(dados_ruins),
+        duplicados=len(dados_duplicados)
+    )
 
-    if dados_ok:
-        aba_ok.append_rows(para_lista_de_listas(dados_ok))
+    escrever_resultados(dados_ok, dados_ruins, dados_duplicados)
 
-    if dados_ruins:
-        aba_ruins.append_rows(para_lista_de_listas(dados_ruins))
+    df_ok = criar_dataframe(dados_ok)
 
-    if dados_duplicados:
-        aba_duplicados.append_rows(para_lista_de_listas(dados_duplicados))
+    if not df_ok.empty:
 
+        grafico_por_area(df_ok)
 
+    salvar_processados(processados)
 
+    log(
+        "SUCESSO",
+        "Pipeline executado com sucesso"
+    )
+    mostrar_estado()

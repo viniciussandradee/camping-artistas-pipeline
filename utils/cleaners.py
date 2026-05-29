@@ -11,10 +11,12 @@ def get_valor(item, chave):
 def limpar_texto(valor):
     if not valor:
         return ""
+
     valor = str(valor)
     valor = valor.strip()
     valor = re.sub(r"\s+", " ", valor)
-
+    valor = valor.title()
+    
     return valor
 
 def limpar_doc(valor):
@@ -39,6 +41,37 @@ def validar_cpf(cpf):
     cpf = limpar_doc(cpf)
 
     if len(cpf) != 11:
+        return False
+    if cpf == cpf[0] * 11:
+        return False
+    #dv1
+    soma = 0
+    peso = 10
+
+    for i in range(9):
+        soma += int(cpf[i]) * peso
+        peso -= 1
+
+    dv1 = (soma * 10 ) % 11
+    if dv1 == 10:
+        dv1 = 0
+
+    if dv1 != int(cpf[9]):
+        return False
+
+    #dv2
+    soma = 0
+    peso = 11
+
+    for i in range(10):
+        soma += int(cpf[i]) * peso
+        peso -= 1
+    dv2 = (soma * 10) % 11
+
+    if dv2 == 10:
+        dv2 = 0
+
+    if dv2 != int(cpf[10]):
         return False
 
     return True
