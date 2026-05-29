@@ -1,58 +1,181 @@
-Camping Artistas Pipeline
+# Camping Artistas Pipeline
 
-Sistema em Python para automação e tratamento de inscrições via Google Forms e Google Sheets.
+Pipeline operacional desenvolvido em Python para gerenciamento de inscrições de eventos/festivais com integração ao Google Sheets.
 
-Objetivo
+O projeto começou como uma automação simples de classificação de dados (V1) e evoluiu para uma arquitetura incremental persistente (V2), focada em operação contínua, reconstrução de estado e redução de retrabalho humano.
 
-Este projeto realiza:
+---
 
-leitura automática de dados do Google Sheets;
-limpeza e padronização de informações;
-validação de CPF;
-validação de telefone;
-detecção de registros duplicados;
-separação automática entre:
-dados válidos;
-dados inválidos;
-dados duplicados.
-Tecnologias utilizadas
-Python 3.12
-gspread
-Google Sheets API
-pandas
-regex
-Estrutura do projeto
+# Objetivo
+
+Automatizar o recebimento, processamento e organização de inscrições do Camping dos Artistas do festival Universo Paralello.
+
+O sistema busca facilitar:
+
+* classificação operacional;
+* visualização contínua;
+* persistência local;
+* exportação offline;
+* auditoria básica;
+* reconstrução de dados.
+
+---
+
+# Evolução do Projeto
+
+## V1 — Automação inicial
+
+A primeira versão foi criada com foco em:
+
+* leitura de dados do Google Sheets;
+* limpeza e classificação;
+* exportação CSV;
+* separação entre registros válidos e inválidos.
+
+### Limitações da V1
+
+Com o crescimento da operação surgiram alguns problemas:
+
+* sobrescrita de dados;
+* ausência de persistência real;
+* dificuldade de auditoria;
+* perda de histórico operacional;
+* dependência excessiva de exportações manuais.
+
+---
+
+## V2 — Pipeline incremental persistente
+
+A segunda versão introduziu uma arquitetura mais robusta e próxima de cenários reais de operação.
+
+### Principais melhorias
+
+#### Processamento incremental
+
+O sistema passou a identificar apenas novos registros enviados pelo formulário.
+
+---
+
+#### Snapshot persistente
+
+Todos os registros agora são armazenados localmente em um snapshot JSON.
+
+Isso permite:
+
+* reconstrução completa do estado operacional;
+* recuperação de dados;
+* persistência histórica;
+* exportação consolidada;
+* sincronização contínua.
+
+---
+
+#### Reconstrução automática do Google Sheets
+
+As abas operacionais agora podem ser reconstruídas dinamicamente a partir do snapshot:
+
+* dados_ok
+* dados_ruins
+* dados_duplicados
+
+---
+
+#### Visualização operacional contínua
+
+O sistema exibe continuamente o estado atual da operação via terminal.
+
+---
+
+#### Separação de responsabilidades
+
+A arquitetura foi reorganizada em módulos independentes:
+
+* leitura;
+* escrita;
+* persistência;
+* exportação;
+* visualização;
+* relatórios;
+* gráficos.
+
+---
+
+# Arquitetura Atual
+
+## Entrada
+
+Google Forms → Google Sheets
+
+## Pipeline
+
+Leitura → limpeza → classificação → persistência → reconstrução → exportação
+
+## Persistência local
+
+* processados.json
+* snapshot.json
+
+## Saídas
+
+* Google Sheets
+* CSV consolidado
+* gráficos
+* logs
+* relatório operacional
+
+---
+
+# Estrutura do Projeto
+
+```text
 config/
+data/
+exports/
 services/
 utils/
-data/
+```
 
-main.py
-requirements.txt
-Como executar
-1. Clonar o projeto
-git clone URL_DO_REPOSITORIO
-2. Instalar dependências
-pip install -r requirements.txt
-3. Configurar credenciais Google
+---
 
-Adicionar o arquivo JSON da Service Account na raiz do projeto.
+# Tecnologias Utilizadas
 
-4. Executar
-python main.py
-Funcionalidades atuais
-Integração com Google Sheets
-Pipeline automatizado
-Limpeza de dados
-Validação básica
-Separação automática em abas
-Melhorias futuras
-Exportação CSV
-Dashboard
-Interface administrativa
-Logs
-Deploy em nuvem
-Agendamento automático
-Observação
+* Python
+* Pandas
+* GSpread
+* Google Sheets API
+* JSON
+* CSV
 
-O arquivo JSON de credenciais não está incluído por segurança.
+---
+
+# Cenário de Uso
+
+O sistema foi pensado inicialmente para auxiliar a operação do Camping dos Artistas do festival Universo Paralello.
+
+A proposta é permitir:
+
+* organização operacional;
+* acompanhamento de inscrições;
+* classificação automatizada;
+* persistência local;
+* exportação offline;
+* recuperação de estado.
+
+---
+
+# Próxima Evolução — V3
+
+A próxima etapa do projeto pretende introduzir:
+
+* dashboard Streamlit;
+* sincronização offline/online;
+* auditoria de alterações;
+* resolução de conflitos humanos;
+* métricas operacionais;
+* painel em tempo real.
+
+---
+
+# Autor
+
+Vinicius Andrade
