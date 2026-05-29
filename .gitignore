@@ -1,7 +1,28 @@
+# ambiente virtual
+
 venv/
 .venv/
-.idea/
-__pycache__/
-*.pyc
-*.json
 
+# cache python
+
+**pycache**/
+*.pyc
+
+# arquivos locais
+
+.idea/
+.vscode/
+
+# exports gerados
+
+exports/*.csv
+
+# persistência local
+
+data/*.json
+
+# credenciais
+camping-artistas-api-ca37fc257d6f.json
+credentials.json
+token.json
+*.secret.json
